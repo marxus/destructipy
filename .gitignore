@@ -1,0 +1,9 @@
+.idea
+.vscode
+
+/.venv
+/build
+/dist
+/destructipy.egg-info
+
+*.pyc
