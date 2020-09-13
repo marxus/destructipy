@@ -1,20 +1,50 @@
 # destructipy
 es6 style dict/object destructure for python
 
+#### install:
 ```
 $ pip install destructipy
 ```
 
+#### usage:
 ```python
 # must import this way...
 ds = __import__('destructipy')
 
-abc = {'a': 1, 'b': 2, 'c': 3}
-c, b, a = ds(abc)
-print(a, b, c)
+# support dicts using operator.itemgetter
+abcd = {'a': 1, 'b': 2, 'c': 3, 'd': 4}
+
+# supports multiline
+d, c, \
+b, a = ds(abcd)
+
+print(a, b, c, d)
+```
+```python
+# func can be named however you wish...
+unpack = __import__('destructipy')
+
+# supports objects as well using operator.attrgetter
+class ABCD:
+    a = 1
+    b = 2
+abcd = ABCD()
+abcd.c = 3
+abcd.d = 4
+
+d, c, b, a = unpack(abcd)
+
+print(a, b, c, d)
 ```
 
-benchmark:
+#### caveats:  
+* Does not work on the Interactive Python Console
+* If you plan to compile your .py to .pyc and delete the source, run the following in your root folder to create .destructipy cache file 
+```
+$ python -m destructipy
+```
+
+#### benchmark:
 ```
 $ python benchmark.py 
 
@@ -52,5 +82,5 @@ destructipy : 0:00:59.538018
 
 999999999 iterations:
 regular     : 0:02:14.472381
-destructipy : ... # couldn't wait, guess it's around 10 minutes or so...
+destructipy : ... # couldn't wait, guess it's around 12 minutes or so...
 ```

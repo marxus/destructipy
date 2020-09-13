@@ -15,18 +15,30 @@ def get_token(source):
             return f'={line.split(token)[0].split(";")[-1]}('
 
 
-def get_keys(line, token):
-    return line.split(token)[0].split(';')[-1].split(',')
+def get_multiline(lineidx, line, source):
+    multiline = line
+    while 1:
+        line = source[lineidx - 1].strip()
+        if not line.endswith('\\'): break
+        line = line.replace('\\', '')
+        multiline = f'{line}{multiline}'
+        lineidx -= 1
+    return multiline.replace(' ', '')
+
+
+def get_keys(multiline, token):
+    return multiline.split(token)[0].split(';')[-1].split(',')
 
 
 def get_funcs(filename, lineno):
     funcs = funcs_cache.get((filename, lineno))
     if not funcs:
-        line = getline(filename, lineno).replace(' ', '')
+        line = getline(filename, lineno)
         if line:
             source = source_cache[filename][2]
             token = get_token(source)
-            keys = get_keys(line, token)
+            multiline = get_multiline(lineno - 1, line, source)
+            keys = get_keys(multiline, token)
         else:
             if not keys_cache:
                 with open(f'{path[0]}/.destructipy') as file:

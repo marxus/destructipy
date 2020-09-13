@@ -3,6 +3,7 @@ from datetime import datetime
 ds = __import__('destructipy')
 
 abc = {'a': 1, 'b': 2, 'c': 3}
+
 for iterations in [int(f'9{"9" * e}') for e in range(9)]:
     print(f'\n{iterations} iterations:')
 

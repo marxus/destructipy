@@ -1,7 +1,7 @@
 from json import dump
 from os import listdir
 from os.path import isdir, islink, relpath
-from . import get_token, get_keys
+from . import get_token, get_multiline, get_keys
 
 
 def listdir_recursive(path):
@@ -22,15 +22,13 @@ def gen_cache(file):
         source = file.read().splitlines()
 
     token = get_token(source)
-    if not token:
-        return
+    if not token: return
 
     cache = {}
-    for i, line in enumerate(source):
-        line = line.replace(' ', '')
-        if token in line:
-            cache[i + 1] = get_keys(line, token)
-
+    for lineidx, line in enumerate(source):
+        multiline = get_multiline(lineidx, line, source)
+        if token in multiline:
+            cache[lineidx + 1] = get_keys(multiline, token)
     return cache
 
 
