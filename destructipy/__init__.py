@@ -1,18 +1,23 @@
 from json import load
-from sys import _getframe, modules, path
+from os import getcwd
+from sys import _getframe, modules
+from os.path import isabs, abspath, relpath
 from operator import attrgetter, itemgetter
 from linecache import getline, cache as source_cache
 
+cwd = getcwd()
 funcs_cache = {}
 keys_cache = {}
 
 
-def get_token(source):
-    token = '=__import__("destructipy")'
+def get_tokens(source):
+    token = 'importdestructipy'
     for line in source:
-        line = line.replace(' ', '').replace("'", '"')
+        line = line.replace(' ', '')
         if token in line:
-            return f'={line.split(token)[0].split(";")[-1]}('
+            line = line.split(token)[1].split(';')[0]
+            token = line[2:].strip() if line else 'destructipy'
+            return f'={token}(', f'={token}.'
 
 
 def get_multiline(lineidx, line, source):
@@ -26,34 +31,36 @@ def get_multiline(lineidx, line, source):
     return multiline.replace(' ', '')
 
 
-def get_keys(multiline, token):
-    return multiline.split(token)[0].split(';')[-1].split(',')
+def get_keys(multiline, tokens):
+    return multiline.split(tokens[tokens[1] in multiline])[0].split(';')[-1].split(',')
 
 
-def get_funcs(filename, lineno):
-    funcs = funcs_cache.get((filename, lineno))
+def get_funcs(frame):
+    lineno = frame.f_lineno
+    funcs = funcs_cache.get((frame, lineno))
     if not funcs:
+        filename = frame.f_code.co_filename
+        if not isabs(filename):
+            filename = abspath(f'{cwd}/{filename}')
         line = getline(filename, lineno)
         if line:
             source = source_cache[filename][2]
-            token = get_token(source)
+            tokens = get_tokens(source)
             multiline = get_multiline(lineno - 1, line, source)
-            keys = get_keys(multiline, token)
+            keys = get_keys(multiline, tokens)
         else:
             if not keys_cache:
-                with open(f'{path[0]}/.destructipy') as file:
+                with open(f'{cwd}/.destructipy') as file:
                     keys_cache.update(load(file))
-            keys = keys_cache[filename][str(lineno)]
-        funcs_cache[filename, lineno] = funcs = attrgetter(*keys), itemgetter(*keys)
+            keys = keys_cache[relpath(filename, cwd)][str(lineno)]
+        funcs_cache[frame, lineno] = funcs = attrgetter(*keys), itemgetter(*keys)
     return funcs
 
 
 class __class__(modules[__name__].__class__):
-    def __call__(self, item):
-        frame = _getframe(1)
-        filename, lineno = frame.f_code.co_filename, frame.f_lineno
-        funcs = get_funcs(filename, lineno)
-        return funcs[hasattr(item, '__getitem__')](item)
+    __call__ = lambda self, _: get_funcs(_getframe(1))[hasattr(_, '__getitem__')](_)
+    a = attr = lambda self, a: get_funcs(_getframe(1))[0](a)
+    i = item = lambda self, i: get_funcs(_getframe(1))[1](i)
 
 
 modules[__name__].__class__ = __class__
