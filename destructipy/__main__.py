@@ -7,7 +7,7 @@ from . import get_tokens, get_multiline, get_keys
 def listdir_recursive(path):
     files = []
     for item in listdir(path):
-        item = f'{path}/{item}'
+        item = '%s/%s' % (path, item)
         if islink(item):
             continue
         if isdir(item):
