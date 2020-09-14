@@ -19,19 +19,18 @@ def get_tokens(source):
             return '=%s(' % token, '=%s.' % token
 
 
-def get_multiline(lineidx, line, source):
-    multiline = line
+def get_line(lineidx, line, source):
     while 1:
-        line = source[lineidx - 1].strip()
-        if not line.endswith('\\'): break
-        line = line.replace('\\', '')
-        multiline = '%s%s' % (line, multiline)
+        _line = source[lineidx - 1].strip()
+        if not _line.endswith('\\'): break
+        _line = _line.replace('\\', '')
+        line = '%s%s' % (_line, line)
         lineidx -= 1
-    return multiline.replace(' ', '')
+    return line.replace(' ', '')
 
 
-def get_keys(multiline, tokens):
-    return multiline.split(tokens[tokens[1] in multiline])[0].split(';')[-1].split(',')
+def get_keys(line, tokens):
+    return line.split(tokens[tokens[1] in line])[0].split(';')[-1].split(',')
 
 
 def get_funcs(frame):
@@ -45,8 +44,8 @@ def get_funcs(frame):
         if line:
             source = source_cache[filename][2]
             tokens = get_tokens(source)
-            multiline = get_multiline(lineno - 1, line, source)
-            keys = get_keys(multiline, tokens)
+            line = get_line(lineno - 1, line, source)
+            keys = get_keys(line, tokens)
         else:
             if not keys_cache:
                 with open('%s/.destructipy' % cwd) as file:
